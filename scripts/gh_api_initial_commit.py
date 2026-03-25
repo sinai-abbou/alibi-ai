@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Create initial (or follow-up) commit on GitHub via REST API when local git is unavailable."""
+"""Optional fallback: create commits on GitHub via REST API when git is unavailable.
+
+Prefer the normal workflow: ``git add``, ``git commit``, ``git push`` (or ``gh``).
+Override the message with env ``ALIBI_COMMIT_MSG``.
+"""
 
 from __future__ import annotations
 

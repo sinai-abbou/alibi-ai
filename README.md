@@ -37,6 +37,18 @@ mypy backend/app
 pytest
 ```
 
+## Git workflow
+
+Use **git** and **`gh`** normally (clone, branch, commit, push). Example:
+
+```bash
+git pull origin main
+git add -A && git commit -m "feat: your change"
+git push origin main
+```
+
+`scripts/gh_api_initial_commit.py` is an optional fallback that creates commits via the GitHub REST API if `git` cannot run on a machine; day-to-day work should use standard git.
+
 ## License
 
 Add your license as needed.
