@@ -59,7 +59,8 @@ def test_generate_evidence_flags(
 
 
 def test_generate_no_openai_key(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    # Must override any value from `.env` (pydantic-settings loads the file).
+    monkeypatch.setenv("OPENAI_API_KEY", "")
     get_settings.cache_clear()
     r = client.post(
         "/api/generate",

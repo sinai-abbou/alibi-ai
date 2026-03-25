@@ -5,12 +5,12 @@ from __future__ import annotations
 from app.schemas import DraftMode, JudgeScores, MessageDraft, RiskPerDraft
 
 
-def normalize_score(value: float | None, *, default: float = 0.0) -> float:
-    """Clamp a score to [0, 10]; None or NaN maps to default."""
+def normalize_score(value: object | None, *, default: float = 0.0) -> float:
+    """Clamp a score to [0, 10]; None, NaN, or non-numeric maps to default."""
     if value is None:
         return default
     try:
-        v = float(value)
+        v = float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return default
     if v != v:  # NaN

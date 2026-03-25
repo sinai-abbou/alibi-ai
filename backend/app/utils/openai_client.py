@@ -7,7 +7,10 @@ from typing import Any, cast
 
 from openai import OpenAI
 
+from app.utils.logging import get_logger
 from app.utils.settings import Settings
+
+logger = get_logger(__name__)
 
 
 class OpenAIClient:
@@ -31,4 +34,12 @@ class OpenAIClient:
         content = resp.choices[0].message.content
         if not content:
             return {}
-        return cast(dict[str, Any], json.loads(content))
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            logger.warning("OpenAI returned non-JSON content: %s", e)
+            return {}
+        if not isinstance(data, dict):
+            logger.warning("OpenAI JSON was not an object: %s", type(data).__name__)
+            return {}
+        return cast(dict[str, Any], data)

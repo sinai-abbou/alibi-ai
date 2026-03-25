@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from app.agents.judge_scoring import normalize_score
 from app.schemas import DraftMode, MessageDraft, RiskPerDraft
 from app.utils.logging import get_logger
 from app.utils.openai_client import OpenAIClient
@@ -60,8 +61,7 @@ def _parse_risk(raw: dict[str, Any], modes: list[DraftMode]) -> dict[str, RiskPe
             mode = DraftMode(mode_str)
         except ValueError:
             continue
-        pr = float(row.get("policy_risk", 5))
-        pr = max(0.0, min(10.0, pr))
+        pr = normalize_score(row.get("policy_risk"), default=5.0)
         warnings = row.get("warnings", [])
         if not isinstance(warnings, list):
             warnings = [str(warnings)]

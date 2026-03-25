@@ -6,6 +6,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from openai import APIError
 
 from app.api.deps import get_openai, get_retriever
 from app.rag.retriever import KnowledgeRetriever
@@ -42,5 +43,8 @@ def generate_messages(
             client=client,
             request_id=rid,
         )
+    except APIError as e:
+        logger.exception("OpenAI API error for request %s", rid)
+        raise HTTPException(status_code=502, detail=f"Upstream LLM error: {e}") from e
     finally:
         set_correlation_id(None)

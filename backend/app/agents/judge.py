@@ -56,8 +56,8 @@ def _parse_scores(raw: dict[str, Any]) -> dict[str, JudgeScores]:
         except ValueError:
             continue
         out[mode.value] = JudgeScores(
-            plausibility=normalize_score(float(row.get("plausibility", 0))),
-            coherence=normalize_score(float(row.get("coherence", 0))),
-            training_compliance=normalize_score(float(row.get("training_compliance", 0))),
+            plausibility=normalize_score(row.get("plausibility")),
+            coherence=normalize_score(row.get("coherence")),
+            training_compliance=normalize_score(row.get("training_compliance")),
         )
     return out
