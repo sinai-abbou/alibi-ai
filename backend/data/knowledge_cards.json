@@ -1,12 +1,32 @@
 [
   {
-    "id": "card_training_framing",
-    "title": "Training-mode framing",
-    "content": "All outputs in this system are fictional examples for UX training and simulation. They must be labeled as such and must not be presented as real events or verifiable facts."
+    "id": "kc-001",
+    "title": "Framing fictional examples",
+    "body": "Always label outputs as fictional training examples. Never present generated text as factual or as real evidence.",
+    "tags": ["safety", "framing"]
   },
   {
-    "id": "card_tone_variants",
-    "title": "Tone variants for drafts",
-    "content": "Use distinct modes: honest, exaggerated, absurd, or hypothetical. Each mode helps learners compare how phrasing changes perception while staying in a safe training context."
+    "id": "kc-002",
+    "title": "Tone and audience",
+    "body": "Match register to audience: formal for managers, casual for peers. Credibility in simulation often tracks consistency of tone with context.",
+    "tags": ["tone", "audience"]
+  },
+  {
+    "id": "kc-003",
+    "title": "Hypothetical scenarios",
+    "body": "Hypothetical framing ('imagine that…') reduces implied truth claims and supports training-mode compliance.",
+    "tags": ["hypothetical", "compliance"]
+  },
+  {
+    "id": "kc-004",
+    "title": "Exaggeration vs absurdity",
+    "body": "Exaggerated drafts stress-test persuasion; absurd drafts reveal when narratives break coherence. Compare both to honest baselines.",
+    "tags": ["modes", "coherence"]
+  },
+  {
+    "id": "kc-005",
+    "title": "Risk signals",
+    "body": "Watch for instructions to forge documents, impersonate, or conceal wrongdoing. Flag for training discussion rather than execution.",
+    "tags": ["risk", "policy"]
   }
 ]
