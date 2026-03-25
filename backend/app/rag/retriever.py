@@ -29,8 +29,12 @@ class KnowledgeCard:
         return f"{self.title}\n{self.body}\nTags: {tags}"
 
 
-def _cards_fingerprint(cards: list[KnowledgeCard]) -> str:
-    raw = json.dumps([c.__dict__ for c in cards], sort_keys=True)
+def _cache_fingerprint(cards: list[KnowledgeCard], embedding_model: str) -> str:
+    """Include embedding model so caches never mix dimensions / model versions."""
+    raw = json.dumps(
+        {"cards": [c.__dict__ for c in cards], "embedding_model": embedding_model},
+        sort_keys=True,
+    )
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
@@ -62,7 +66,7 @@ class KnowledgeRetriever:
             self._model = SentenceTransformer(self._settings.embedding_model)
         return self._model
 
-    def _try_load_cache(self, fp: str) -> np.ndarray | None:
+    def _try_load_cache(self, fp: str, *, expected_dim: int) -> np.ndarray | None:
         cache_path = self._settings.embeddings_cache_path
         if not cache_path.is_file():
             return None
@@ -70,7 +74,16 @@ class KnowledgeRetriever:
             payload = json.loads(cache_path.read_text(encoding="utf-8"))
             if payload.get("fingerprint") != fp:
                 return None
+            if payload.get("model") != self._settings.embedding_model:
+                return None
             arr = np.array(payload["embeddings"], dtype=np.float32)
+            if arr.ndim != 2 or arr.shape[1] != expected_dim:
+                logger.warning(
+                    "Ignoring stale embeddings cache (dim %s, expected %s)",
+                    getattr(arr, "shape", None),
+                    expected_dim,
+                )
+                return None
             return arr
         except (json.JSONDecodeError, KeyError, ValueError):
             return None
@@ -81,6 +94,7 @@ class KnowledgeRetriever:
         payload: dict[str, Any] = {
             "fingerprint": fp,
             "model": self._settings.embedding_model,
+            "embedding_dim": int(embeddings.shape[1]),
             "embeddings": embeddings.tolist(),
         }
         cache_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -89,13 +103,15 @@ class KnowledgeRetriever:
     def warm(self) -> None:
         """Preload cards and embeddings (call at startup)."""
         self._cards = self._load_cards()
-        fp = _cards_fingerprint(self._cards)
-        cached = self._try_load_cache(fp)
+        model = self._get_model()
+        probe = np.array(model.encode(["x"], normalize_embeddings=True), dtype=np.float32)
+        expected_dim = int(probe.shape[1])
+        fp = _cache_fingerprint(self._cards, self._settings.embedding_model)
+        cached = self._try_load_cache(fp, expected_dim=expected_dim)
         if cached is not None and len(cached) == len(self._cards):
             self._embeddings = cached
             logger.info("Loaded %d card embeddings from cache", len(self._cards))
             return
-        model = self._get_model()
         texts = [c.as_text() for c in self._cards]
         enc = model.encode(texts, normalize_embeddings=True)
         self._embeddings = np.array(enc, dtype=np.float32)
