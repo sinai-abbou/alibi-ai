@@ -1,5 +1,7 @@
 # Alibi AI
 
+**Remote:** [github.com/sinai-abbou/alibi-ai](https://github.com/sinai-abbou/alibi-ai)
+
 Multi-agent pipeline for **training and simulation**: it produces **fictional example** message drafts and optional **synthetic, non-verifiable** evidence for UX and learning. Nothing here is intended as real-world deception or proof.
 
 ## Requirements

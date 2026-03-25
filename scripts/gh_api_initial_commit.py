@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import subprocess
 import sys
 import urllib.error
@@ -14,7 +15,10 @@ from urllib.parse import quote
 
 OWNER = "sinai-abbou"
 REPO = "alibi-ai"
-COMMIT_MESSAGE = "chore: initial project scaffold (backend, frontend, tooling)"
+COMMIT_MESSAGE = os.environ.get(
+    "ALIBI_COMMIT_MSG",
+    "chore: initial project scaffold (backend, frontend, tooling)",
+)
 
 SKIP_DIR_NAMES = frozenset(
     {
