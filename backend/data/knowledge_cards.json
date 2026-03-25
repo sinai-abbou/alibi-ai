@@ -1,0 +1,12 @@
+[
+  {
+    "id": "card_training_framing",
+    "title": "Training-mode framing",
+    "content": "All outputs in this system are fictional examples for UX training and simulation. They must be labeled as such and must not be presented as real events or verifiable facts."
+  },
+  {
+    "id": "card_tone_variants",
+    "title": "Tone variants for drafts",
+    "content": "Use distinct modes: honest, exaggerated, absurd, or hypothetical. Each mode helps learners compare how phrasing changes perception while staying in a safe training context."
+  }
+]

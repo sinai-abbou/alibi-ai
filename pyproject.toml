@@ -1,0 +1,35 @@
+[project]
+name = "alibi-ai"
+version = "0.1.0"
+description = "Training/simulation message draft generator (fictional examples for UX/training)"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["backend/app", "frontend", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+mypy_path = ["backend"]
+packages = ["app"]
+
+[[tool.mypy.overrides]]
+module = ["sentence_transformers.*", "streamlit.*", "PIL.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
