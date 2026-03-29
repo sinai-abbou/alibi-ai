@@ -43,7 +43,10 @@ class Settings(BaseSettings):
         default=32,
         ge=1,
         le=80,
-        description="Diffusion steps (if supported by provider). Env: HF_IMAGE_NUM_INFERENCE_STEPS.",
+        description=(
+            "Diffusion steps (if supported by provider). "
+            "Env: HF_IMAGE_NUM_INFERENCE_STEPS."
+        ),
     )
     hf_image_width: int = Field(
         default=1024,

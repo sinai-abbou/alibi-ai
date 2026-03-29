@@ -61,7 +61,8 @@ _NEGATIVE_BAN_BW_SKETCH = (
 # Models often add unrelated stock "tiny people" (bikes, wheelchairs) — discourage unless in text.
 _NEGATIVE_RANDOM_FIGURES = (
     "random pedestrian, stock photo crowd, tiny person, silhouette mascot, "
-    "unrelated cyclist, bicycle rider, person on bike, wheelchair, wheelchair user, mobility scooter, "
+    "unrelated cyclist, bicycle rider, person on bike, wheelchair, "
+    "wheelchair user, mobility scooter, "
     "gurney, hospital stretcher as focal subject, crutches as main subject, "
     "accessibility pictogram, disability symbol icon, isa wheelchair symbol, "
     "random bystander, walking figure, cartoon character person"
@@ -224,7 +225,8 @@ def _build_absurd_image_prompt_pair(
     safety = (
         "No readable text, logos, watermarks, comic panels, or bubbles. "
         "Keep rich natural color throughout. "
-        "No random crowds, cyclists, wheelchairs, or accessibility icons unless the scenario says so."
+        "No random crowds, cyclists, wheelchairs, or accessibility icons "
+        "unless the scenario says so."
     )
     positive = f"{lead}{safety}"
 

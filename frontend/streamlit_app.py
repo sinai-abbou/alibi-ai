@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from contextlib import suppress
 import html
 import os
 import time
@@ -86,7 +87,8 @@ with st.sidebar:
     base = st.text_input("API base URL", value=DEFAULT_BASE)
     st.caption("Set `ALIBI_API_BASE` env var to change the default.")
 
-# Illustration request: defer to next run so the full-page overlay renders at root (same UX as Generate).
+# Illustration request: defer to next run so the full-page overlay
+# renders at root (same UX as Generate).
 _PENDING_ILLUSTRATION = "alibi_pending_illustration"
 _EXPAND_DRAFT = "alibi_expand_draft"
 
@@ -118,10 +120,8 @@ if pending_illu is not None and st.session_state.get("generate_result"):
             ill_errors_early.pop(mode_pending, None)
             draft_images_early[mode_pending] = r_ill.json()
             st.session_state[_EXPAND_DRAFT] = mode_pending
-            try:
+            with suppress(Exception):
                 st.toast("Illustration ready.", icon="🖼️")
-            except Exception:
-                pass
         else:
             ill_errors_early[mode_pending] = r_ill.text
             draft_images_early.pop(mode_pending, None)
@@ -200,10 +200,8 @@ if generate_clicked:
     st.session_state["form_situation"] = situation or "(unspecified)"
     st.session_state["form_target"] = target
     st.session_state.pop(_EXPAND_DRAFT, None)
-    try:
+    with suppress(Exception):
         st.toast("Drafts ready.", icon="✅")
-    except Exception:
-        pass
 
 data = st.session_state.get("generate_result")
 if data:
