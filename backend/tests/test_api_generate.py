@@ -58,6 +58,26 @@ def test_generate_evidence_flags(
         assert art.get("non_verifiable") is True
 
 
+def test_generate_respects_requested_tone(
+    client_with_key: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(OpenAIClient, "chat_json", make_fake_chat_json(include_evidence_plan=False))
+    r = client_with_key.post(
+        "/api/generate",
+        json={
+            "situation": "Running late to a meeting",
+            "tone": "absurd",
+            "target": "manager",
+            "generate_evidence": False,
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["best_mode"] == "absurd"
+    assert "time-traveling printer" in (data["best_message"] or "")
+
+
 def test_generate_no_openai_key(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     # Must override any value from `.env` (pydantic-settings loads the file).
     monkeypatch.setenv("OPENAI_API_KEY", "")

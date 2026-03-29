@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import time
 from typing import Any
 
 import httpx
@@ -24,22 +25,46 @@ def generate_image_bytes(
     if not token:
         logger.info("HF image: no HUGGINGFACE_API_TOKEN; skipping API call")
         return None
+    logger.info("HF image: token configured from env (.env) = yes")
     model = settings.hf_image_model
     url = f"https://api-inference.huggingface.co/models/{model}"
     headers = {"Authorization": f"Bearer {token}"}
     payload: dict[str, Any] = {"inputs": prompt}
     try:
         with httpx.Client(timeout=timeout_s) as client:
-            r = client.post(url, headers=headers, json=payload)
-        if r.status_code != 200:
-            logger.warning("HF image: HTTP %s %s", r.status_code, r.text[:200])
-            return None
-        ctype = r.headers.get("content-type", "")
-        if "application/json" in ctype:
-            # error payload
-            logger.warning("HF image: unexpected JSON response")
-            return None
-        return r.content
+            # Hugging Face Inference can return 503 while loading model.
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                r = client.post(url, headers=headers, json=payload)
+                ctype = r.headers.get("content-type", "")
+                logger.info(
+                    "HF image: attempt=%s status=%s content_type=%s bytes=%s",
+                    attempt,
+                    r.status_code,
+                    ctype,
+                    len(r.content),
+                )
+                if r.status_code == 200 and "application/json" not in ctype:
+                    return r.content
+                # Log exact response snippet for debugging.
+                logger.warning(
+                    "HF image: response status=%s headers=%s body=%s",
+                    r.status_code,
+                    dict(r.headers),
+                    r.text[:500],
+                )
+                if r.status_code != 503:
+                    return None
+                wait_s = 2.0
+                try:
+                    body = r.json()
+                    if isinstance(body, dict) and body.get("estimated_time") is not None:
+                        wait_s = max(1.0, min(float(body["estimated_time"]), 12.0))
+                except ValueError:
+                    pass
+                if attempt < max_attempts:
+                    time.sleep(wait_s)
+        return None
     except httpx.HTTPError as e:
         logger.warning("HF image: request failed: %s", e)
         return None

@@ -36,8 +36,9 @@ def plan_evidence(
         }
     )
     user_prompt = (
-        'Create 2 plan items. Return JSON: { "plan": [ { "kind": "...", '
-        '"description": "..." } ] }.\n' + user
+        'Create 3 plan items. Return JSON: { "plan": [ { "kind": "...", '
+        '"description": "..." } ] }. You MUST include one item with kind="generated_image".\n'
+        + user
     )
     raw = client.chat_json(system=SYSTEM, user=user_prompt, temperature=0.4)
     items: list[EvidencePlanItem] = []
@@ -47,8 +48,20 @@ def plan_evidence(
         kind = str(row.get("kind", "mock_screenshot"))
         desc = str(row.get("description", ""))
         items.append(EvidencePlanItem(kind=kind, description=desc))
+    if not any(it.kind == "generated_image" for it in items):
+        items.insert(
+            0,
+            EvidencePlanItem(
+                kind="generated_image",
+                description="Realistic illustration of the situation context (simulated)",
+            ),
+        )
     if not items:
         items = [
+            EvidencePlanItem(
+                kind="generated_image",
+                description="Realistic illustration of the situation context (simulated)",
+            ),
             EvidencePlanItem(
                 kind="mock_chat",
                 description="Synthetic chat snippet for UX demo",
@@ -59,6 +72,23 @@ def plan_evidence(
             ),
         ]
     return items
+
+
+def _situation_image_prompt(request: GenerateRequest, best: MessageDraft) -> str:
+    """Build a rich text-to-image prompt for a realistic simulated illustration."""
+    situation = request.situation.strip()[:300]
+    tone = request.tone.strip()[:60]
+    target = request.target.strip()[:60]
+    best_text = best.text.strip()[:240]
+    return (
+        "Illustration of a situation for training UI, simulated context only, not evidence. "
+        "Generate a realistic, photo-like scene with cinematic lighting, high detail, "
+        "natural colors, and believable environment.\n"
+        f"Situation context: {situation}\n"
+        f"Message context: {best_text}\n"
+        f"Tone: {tone}; Audience: {target}\n"
+        "No logos, no readable personal data, no forged documents, no screenshot UI overlays."
+    )
 
 
 def _pil_mock_screenshot(caption: str, subtitle: str) -> bytes:
@@ -109,10 +139,7 @@ def build_evidence_artifacts(
     artifacts: list[EvidenceArtifact] = []
     for item in plan:
         if item.kind == "generated_image":
-            prompt = (
-                f"Illustration for fictional training scenario: {request.situation[:200]}. "
-                "Abstract, no readable personal data, no forged documents."
-            )
+            prompt = _situation_image_prompt(request, best)
             data = generate_image_bytes(settings, prompt)
             if data:
                 png, mime = to_png_bytes_if_needed(data)
@@ -122,7 +149,7 @@ def build_evidence_artifacts(
                         synthetic=True,
                         non_verifiable=True,
                         kind="generated_image",
-                        caption=item.description,
+                        caption=f"{item.description} (simulated context, not evidence)",
                         image_base64=b64,
                         mime_type=mime,
                     )

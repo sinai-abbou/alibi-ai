@@ -18,6 +18,17 @@ from app.utils.settings import Settings
 logger = get_logger(__name__)
 
 
+def _requested_mode_or_none(tone: str) -> str | None:
+    t = tone.strip().lower()
+    aliases = {
+        "honest": "honest",
+        "exaggerated": "exaggerated",
+        "absurd": "absurd",
+        "hypothetical": "hypothetical",
+    }
+    return aliases.get(t)
+
+
 def run_pipeline(
     *,
     request: GenerateRequest,
@@ -54,6 +65,26 @@ def run_pipeline(
     logger.info("[%s] judge: scores for %d modes", rid, len(judge_scores))
 
     best_mode, composite = select_best_draft(drafts, judge_scores, risk)
+    requested_mode = _requested_mode_or_none(request.tone)
+    if requested_mode:
+        constrained = [d for d in drafts if d.mode.value == requested_mode]
+        if constrained:
+            constrained_mode, constrained_score = select_best_draft(constrained, judge_scores, risk)
+            if constrained_mode is not None:
+                logger.info(
+                    "[%s] selection: enforcing requested tone=%s (best_mode=%s)",
+                    rid,
+                    requested_mode,
+                    constrained_mode.value,
+                )
+                best_mode = constrained_mode
+                composite = constrained_score
+        else:
+            logger.warning(
+                "[%s] requested tone=%s not produced by generator; using global best",
+                rid,
+                requested_mode,
+            )
     best_msg = None
     if best_mode is not None:
         for d in drafts:

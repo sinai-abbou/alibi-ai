@@ -64,7 +64,11 @@ if st.button("Generate", type="primary"):
 
     ev = data.get("evidence") or []
     if ev:
-        st.subheader("Synthetic evidence (illustration only)")
+        st.subheader("Simulated context illustrations (not evidence)")
+        st.caption(
+            "These visuals are synthetic illustrations generated for UX/training. "
+            "They are non-verifiable and must not be treated as proof."
+        )
         for art in ev:
             st.write(f"**{art.get('kind', 'artifact')}** — {art.get('caption', '')}")
             b64 = art.get("image_base64")
