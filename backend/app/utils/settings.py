@@ -29,7 +29,34 @@ class Settings(BaseSettings):
         ),
     )
 
-    hf_image_model: str = "stabilityai/stable-diffusion-xl-base-1.0"
+    hf_image_model: str = Field(
+        default="stabilityai/stable-diffusion-xl-base-1.0",
+        description="HF Hub model id for text-to-image. Env: HF_IMAGE_MODEL.",
+    )
+    hf_image_guidance_scale: float = Field(
+        default=7.5,
+        ge=1.0,
+        le=20.0,
+        description="Text-to-image guidance. Env: HF_IMAGE_GUIDANCE_SCALE.",
+    )
+    hf_image_num_inference_steps: int = Field(
+        default=32,
+        ge=1,
+        le=80,
+        description="Diffusion steps (if supported by provider). Env: HF_IMAGE_NUM_INFERENCE_STEPS.",
+    )
+    hf_image_width: int = Field(
+        default=1024,
+        ge=512,
+        le=1536,
+        description="Output width in pixels (if supported). Env: HF_IMAGE_WIDTH.",
+    )
+    hf_image_height: int = Field(
+        default=1024,
+        ge=512,
+        le=1536,
+        description="Output height in pixels (if supported). Env: HF_IMAGE_HEIGHT.",
+    )
 
 
 @lru_cache

@@ -25,15 +25,19 @@ def judge_drafts(
     *,
     drafts: list[MessageDraft],
     situation: str,
+    target_audience: str,
 ) -> dict[str, JudgeScores]:
     import json
 
     payload = {
         "situation": situation,
+        "target_audience": target_audience,
         "drafts": [{"mode": d.mode.value, "text": d.text} for d in drafts],
     }
     user = (
-        'Return JSON: { "scores": [ { "mode": "honest|exaggerated|absurd|hypothetical", '
+        "Scores must account for whether each draft fits the stated recipient "
+        "(register, appropriateness). "
+        'Return JSON: { "scores": [ { "mode": "honest|exaggerated|absurd|professional|emotional", '
         '"plausibility": 0-10, "coherence": 0-10, "training_compliance": 0-10 } ] }.\n'
         f"Input: {json.dumps(payload)}"
     )

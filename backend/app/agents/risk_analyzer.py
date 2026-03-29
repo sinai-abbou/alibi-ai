@@ -25,10 +25,12 @@ def analyze_risks(
     *,
     drafts: list[MessageDraft],
     situation: str,
+    target_audience: str,
 ) -> dict[str, RiskPerDraft]:
     """Return risk keyed by draft mode value."""
     payload = {
         "situation": situation,
+        "target_audience": target_audience,
         "drafts": [
             {
                 "mode": d.mode.value,

@@ -43,8 +43,7 @@ def select_best_draft(
     """
     Pick the draft with highest composite score.
 
-    Ties: higher plausibility, then higher coherence, then mode order:
-    honest < exaggerated < absurd < hypothetical (lexicographic by value).
+    Ties: higher plausibility, then higher coherence, then lexicographic mode value.
     """
     if not drafts:
         return None, None

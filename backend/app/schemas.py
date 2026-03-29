@@ -14,22 +14,48 @@ class DraftMode(StrEnum):
     HONEST = "honest"
     EXAGGERATED = "exaggerated"
     ABSURD = "absurd"
-    HYPOTHETICAL = "hypothetical"
+    PROFESSIONAL = "professional"
+    EMOTIONAL = "emotional"
+
+
+# One draft per mode; fixed order for API stability.
+DRAFT_MODES_ORDER: tuple[DraftMode, ...] = (
+    DraftMode.HONEST,
+    DraftMode.EXAGGERATED,
+    DraftMode.ABSURD,
+    DraftMode.PROFESSIONAL,
+    DraftMode.EMOTIONAL,
+)
+
+
+class TargetAudience(StrEnum):
+    """Who the fictional message is addressed to (controls register and structure)."""
+
+    FRIEND = "friend"
+    FAMILY = "family"
+    COWORKER = "coworker"
+    MANAGER = "manager"
+    CLIENT = "client"
+    PARTNER = "partner"
+    TEACHER_PROFESSOR = "teacher_professor"
+    FORMAL_OFFICIAL = "formal_official"
 
 
 class GenerateRequest(BaseModel):
     """User input for narrative training simulation."""
 
     situation: str = Field(..., min_length=1, description="Scenario context (training only).")
-    tone: str = Field(..., min_length=1, description="Desired tone, e.g. formal, casual.")
-    target: str = Field(..., min_length=1, description="Audience, e.g. manager, friend.")
+    tone: DraftMode = Field(
+        ...,
+        description="Selected tone; matching draft is best_message (not judge-selected).",
+    )
+    target: TargetAudience = Field(
+        ...,
+        description="Recipient; shapes vocabulary, formality, and message length.",
+    )
     existing_message: str | None = Field(
         default=None,
         description="Optional draft to rewrite as a fictional training example.",
-    )
-    generate_evidence: bool = Field(
-        default=False,
-        description="If true, include synthetic illustrative evidence (non-verifiable).",
     )
 
 
@@ -63,7 +89,7 @@ class RiskPerDraft(BaseModel):
 class EvidencePlanItem(BaseModel):
     """Planned synthetic evidence artifact."""
 
-    kind: str = Field(..., description="e.g. mock_chat, mock_screenshot, generated_image")
+    kind: str = Field(..., description='Planned artifact kind; use "generated_image" for HF image.')
     description: str
 
 
@@ -82,8 +108,31 @@ class EvidenceArtifact(BaseModel):
     mime_type: str | None = "image/png"
 
 
+class DraftImageRequest(BaseModel):
+    """On-demand synthetic illustration for one draft (POST /api/evidence/image)."""
+
+    situation: str = Field(..., min_length=1)
+    target: TargetAudience
+    draft_mode: DraftMode = Field(
+        ...,
+        description="Mode of the draft this image illustrates.",
+    )
+    draft_text: str = Field(..., min_length=1)
+
+
+class DraftImageResponse(BaseModel):
+    """Single synthetic image for a draft."""
+
+    synthetic: bool = True
+    non_verifiable: bool = True
+    kind: str = "generated_image"
+    caption: str
+    image_base64: str
+    mime_type: str = "image/png"
+
+
 class GenerateResponse(BaseModel):
-    """API response: best draft, scores, warnings, optional evidence."""
+    """API response: best draft, scores, warnings."""
 
     request_id: str
     situation_summary: str
@@ -98,9 +147,7 @@ class GenerateResponse(BaseModel):
     best_message: str | None = None
     composite_score: float | None = Field(
         default=None,
-        description="Weighted composite used for selection (higher is better).",
+        description="Weighted composite for the selected tone's draft only (informational).",
     )
     warnings: list[str] = Field(default_factory=list)
-    evidence_plan: list[EvidencePlanItem] = Field(default_factory=list)
-    evidence: list[EvidenceArtifact] = Field(default_factory=list)
     meta: dict[str, Any] = Field(default_factory=dict)

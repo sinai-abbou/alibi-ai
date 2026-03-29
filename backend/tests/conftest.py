@@ -34,7 +34,7 @@ def client(monkeypatch: pytest.MonkeyPatch):
         yield test_client
 
 
-def make_fake_chat_json(include_evidence_plan: bool = False) -> Callable[..., dict[str, Any]]:
+def make_fake_chat_json() -> Callable[..., dict[str, Any]]:
     responses: list[dict[str, Any]] = [
         {
             "drafts": [
@@ -53,6 +53,18 @@ def make_fake_chat_json(include_evidence_plan: bool = False) -> Callable[..., di
                     "text": "Fictional training example: a time-traveling printer caused it.",
                     "fictional_framing_present": True,
                 },
+                {
+                    "mode": "professional",
+                    "text": (
+                        "Fictional training example: I regret the inconvenience in a formal tone."
+                    ),
+                    "fictional_framing_present": True,
+                },
+                {
+                    "mode": "emotional",
+                    "text": "Fictional training example: I feel terrible about letting you down.",
+                    "fictional_framing_present": True,
+                },
             ]
         },
         {
@@ -63,7 +75,13 @@ def make_fake_chat_json(include_evidence_plan: bool = False) -> Callable[..., di
                     "warnings": [],
                     "framing_ok": True,
                 }
-                for m in ("honest", "exaggerated", "absurd")
+                for m in (
+                    "honest",
+                    "exaggerated",
+                    "absurd",
+                    "professional",
+                    "emotional",
+                )
             ]
         },
         {
@@ -76,18 +94,16 @@ def make_fake_chat_json(include_evidence_plan: bool = False) -> Callable[..., di
                     "training_compliance": 8,
                 },
                 {"mode": "absurd", "plausibility": 4, "coherence": 6, "training_compliance": 9},
+                {
+                    "mode": "professional",
+                    "plausibility": 9,
+                    "coherence": 9,
+                    "training_compliance": 10,
+                },
+                {"mode": "emotional", "plausibility": 7, "coherence": 8, "training_compliance": 9},
             ]
         },
     ]
-    if include_evidence_plan:
-        responses.append(
-            {
-                "plan": [
-                    {"kind": "mock_chat", "description": "Synthetic chat"},
-                    {"kind": "mock_screenshot", "description": "Synthetic card"},
-                ]
-            }
-        )
     idx = {"n": 0}
 
     def _chat_json(
