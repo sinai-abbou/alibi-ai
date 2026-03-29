@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import io
 import time
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from huggingface_hub import InferenceClient
 from huggingface_hub.errors import HfHubHTTPError
@@ -61,7 +61,7 @@ def generate_image_bytes(
             width=width,
             height=height,
         )
-        return cast("PILImage.Image", image)
+        return image
 
     for attempt in range(1, max_attempts + 1):
         try:
