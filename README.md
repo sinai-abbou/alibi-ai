@@ -2,7 +2,7 @@
 
 **Remote:** [github.com/sinai-abbou/alibi-ai](https://github.com/sinai-abbou/alibi-ai)
 
-Alibi AI is a communication training and simulation project. It generates fictional example messages in five tones:
+Alibi AI is a playful, slightly ironic communication training application that generates fictional "alibis" or excuse-style messages in different tones:
 
 - `honest`
 - `exaggerated`
@@ -10,7 +10,9 @@ Alibi AI is a communication training and simulation project. It generates fictio
 - `professional`
 - `emotional`
 
-The selected tone determines which draft is highlighted in the UI. The project can also generate optional synthetic illustrations for individual drafts. These images are non-verifiable and intended for learning and interface demonstration only.
+The goal is not real deception, but to explore tone, narrative structure, and perceived credibility in a safe learning context. The system can also generate optional synthetic illustrations for individual drafts. These images are fake, non-verifiable, and intended only for training and interface demonstration.
+
+The project uses a Streamlit frontend and a FastAPI backend deployed on Azure App Service. It combines a lightweight RAG pipeline for context-aware generation, OpenAI for text generation, judging, and scoring, and Hugging Face for optional synthetic image creation.
 
 ## Requirements
 
