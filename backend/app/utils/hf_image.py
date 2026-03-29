@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import io
 import time
+from typing import TYPE_CHECKING, cast
 
 from huggingface_hub import InferenceClient
 from huggingface_hub.errors import HfHubHTTPError
 
 from app.utils.logging import get_logger
 from app.utils.settings import Settings
+
+if TYPE_CHECKING:
+    from PIL import Image as PILImage
 
 logger = get_logger(__name__)
 
@@ -41,35 +45,45 @@ def generate_image_bytes(
     client = InferenceClient(api_key=token, provider="auto", timeout=timeout_s)
     max_attempts = 3
 
-    def _t2i(extra: dict[str, float | int | str]) -> object:
-        t2i_kw: dict[str, float | int | str] = dict(extra)
-        if negative_prompt:
-            t2i_kw["negative_prompt"] = negative_prompt
-        return client.text_to_image(prompt, model=model, **t2i_kw)
-
-    rich_params: dict[str, float | int | str] = {
-        "guidance_scale": settings.hf_image_guidance_scale,
-        "num_inference_steps": settings.hf_image_num_inference_steps,
-        "width": settings.hf_image_width,
-        "height": settings.hf_image_height,
-    }
+    def _t2i(
+        *,
+        guidance_scale: float | None = None,
+        num_inference_steps: int | None = None,
+        width: int | None = None,
+        height: int | None = None,
+    ) -> PILImage.Image:
+        image = client.text_to_image(
+            prompt,
+            model=model,
+            negative_prompt=negative_prompt,
+            guidance_scale=guidance_scale,
+            num_inference_steps=num_inference_steps,
+            width=width,
+            height=height,
+        )
+        return cast("PILImage.Image", image)
 
     for attempt in range(1, max_attempts + 1):
         try:
             try:
-                image = _t2i(rich_params)
+                image = _t2i(
+                    guidance_scale=settings.hf_image_guidance_scale,
+                    num_inference_steps=settings.hf_image_num_inference_steps,
+                    width=settings.hf_image_width,
+                    height=settings.hf_image_height,
+                )
             except TypeError:
                 try:
-                    image = _t2i({"guidance_scale": settings.hf_image_guidance_scale})
+                    image = _t2i(guidance_scale=settings.hf_image_guidance_scale)
                 except TypeError:
-                    image = _t2i({})
+                    image = _t2i()
             except HfHubHTTPError as e2:
                 status2 = e2.response.status_code if e2.response is not None else None
                 if status2 in (400, 422):
                     logger.info(
                         "HF image: retrying without resolution/steps (status=%s)", status2
                     )
-                    image = _t2i({"guidance_scale": settings.hf_image_guidance_scale})
+                    image = _t2i(guidance_scale=settings.hf_image_guidance_scale)
                 else:
                     raise
         except HfHubHTTPError as e:
