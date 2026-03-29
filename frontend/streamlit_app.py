@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import base64
-from contextlib import suppress
 import html
 import os
 import time
+from contextlib import suppress
 
 import httpx
 import streamlit as st
